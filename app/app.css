@@ -1,0 +1,21 @@
+﻿#meta {
+    font-family: monospace;
+    font-size: 10;
+    horizontal-align: right;
+    vertical-align: bottom;
+    margin: 5;
+}
+
+#container{
+    background-color: lightblue;
+}
+
+#outer-container{
+    background-color: lightgreen;
+}
+
+
+Image {
+    horizontal-align: left;
+    vertical-align: top;
+}
