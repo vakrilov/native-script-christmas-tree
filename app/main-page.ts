@@ -29,13 +29,15 @@ export function pageLoaded(args: observable.EventData) {
         x: 50,
         y: 60,
         vx: .2,
-        radius: 30
+        radius: 30,
+        mass: 9
     }));
 
     world.add(Physics.body('circle', {
         x: 30,
         y: 60,
-        radius: 10
+        radius: 10,
+        mass: 1
     }));
 
 
@@ -43,7 +45,8 @@ export function pageLoaded(args: observable.EventData) {
         x: 70,
         y: 20,
         vx: -0.1,
-        radius: 20
+        radius: 20,
+        mass: 4
     }));
 
     var renderer = Physics.renderer('ns', {
