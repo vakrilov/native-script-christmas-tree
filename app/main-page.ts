@@ -10,16 +10,28 @@ import {screen} from "platform";
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
 
+var initialized = false;
 // Event handler for Page "loaded" event attached in main-page.xml
 export function pageLoaded(args: observable.EventData) {
+    var page = <pages.Page>args.object;
+
+    var container = <LayoutBase>page.getViewById("container");
+    var metaText = <TextBase>page.getViewById("meta");
+
+    initWrold(container, metaText);
+}
+
+function initWrold(container: LayoutBase, metaText: TextBase) {
+    if(initialized){
+        return;
+    }
+    initialized = true;
+    
     var WIDTH = 300; //screen.mainScreen.widthDIPs;
     var HEIGHT = 400; //screen.mainScreen.heightDIPs - 60;
     console.log("w: " + WIDTH + " h: " + HEIGHT);
     // Get the event sender
-    var page = <pages.Page>args.object;
-    
-    var container = <LayoutBase>page.getViewById("container");
-    var metaText = <TextBase>page.getViewById("meta");
+
     container.width = WIDTH;
     container.height = HEIGHT;
 
