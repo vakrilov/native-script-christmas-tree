@@ -21,45 +21,90 @@ export function pageLoaded(args: observable.EventData) {
     initWrold(container, metaText);
 }
 
+function createLink(body1, body2, world, constraints, linkLength: number = 10) {
+    let body1X = body1.state.pos.get(0);
+    let body1Y = body1.state.pos.get(1);
+    let body2X = body2.state.pos.get(0);
+    let body2Y = body2.state.pos.get(1);
+
+    let dx = body2X - body1X;
+    let dy = body2Y - body1Y;
+    let distance = Math.sqrt(dx * dx + dy * dy) - body1.radius - body2.radius;
+    if (distance < 0) {
+        throw Error("Bodies are too close");
+    }
+    let count = Math.floor(distance / linkLength) - 1;
+    if (count === 0) {
+        //direct link
+        constraints.distanceConstraint(body1, body2, 0.5);
+        return;
+    }
+
+    let angle = Math.atan2(dx, dy);
+    let sin = Math.sin(angle);
+    let cos = Math.cos(angle);
+
+    let xInc = (sin * distance) / (count + 1);
+    let yInc = (cos * distance) / (count + 1);
+    let links = [];
+    for (let i = 0; i < count; i++) {
+        let link = Physics.body('circle', {
+            x: body1X + body1.radius * sin + (i + 1) * xInc,
+            y: body1Y + body1.radius * cos + (i + 1) * yInc,
+            radius: 2,
+            mass: 0.1
+        });
+        links.push(link);
+        world.add(link);
+        if (i > 0) {
+            constraints.distanceConstraint(links[i - 1], links[i], 0.5);
+        }
+    }
+    constraints.distanceConstraint(body1, links[0], 0.5);
+    constraints.distanceConstraint(links[count - 1], body2, 0.5);
+}
+
+
 function initWrold(container: LayoutBase, metaText: TextBase) {
-    if(initialized){
+    if (initialized) {
         return;
     }
     initialized = true;
-    
+
     var WIDTH = 300; //screen.mainScreen.widthDIPs;
     var HEIGHT = 400; //screen.mainScreen.heightDIPs - 60;
     console.log("w: " + WIDTH + " h: " + HEIGHT);
-    // Get the event sender
-
+    
     container.width = WIDTH;
     container.height = HEIGHT;
 
     var world = Physics();
 
-    world.add(Physics.body('circle', {
-        x: 50,
+    var ball = Physics.body('circle', {
+        x: 250,
         y: 60,
-        vx: .2,
-        radius: 30,
-        mass: 9
-    }));
-
-    world.add(Physics.body('circle', {
-        x: 30,
-        y: 60,
-        radius: 10,
-        mass: 1
-    }));
-
-
-    world.add(Physics.body('circle', {
-        x: 70,
-        y: 20,
-        vx: -0.1,
         radius: 20,
-        mass: 4
-    }));
+        mass: 2
+    });
+
+    var anchor = Physics.body('circle', {
+        x: 150,
+        y: 100,
+        vx: .2,
+        radius: 10,
+        mass: 9
+    });
+    anchor.treatment = 'static';
+
+    var rigidConstraints = Physics.behavior('verlet-constraints', {
+        iterations: 1
+    });
+
+    createLink(anchor, ball, world, rigidConstraints, 5);
+
+    world.add(anchor);
+    world.add(ball);
+    world.add(rigidConstraints);
 
     var renderer = Physics.renderer('ns', {
         container: container,
