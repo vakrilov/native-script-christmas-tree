@@ -1,11 +1,13 @@
 import observable = require("data/observable");
 import pages = require("ui/page");
+import gestures = require("ui/gestures");
 import {Image} from "ui/image";
 import {View} from "ui/core/view";
 import {Label} from "ui/label";
 import {LayoutBase} from "ui/layouts/layout-base";
 import {TextBase} from "ui/text-base";
 import {screen} from "platform";
+import utils = require("utils/utils");
 
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
@@ -64,21 +66,28 @@ function createLink(body1, body2, world, constraints, linkLength: number = 10) {
     constraints.distanceConstraint(links[count - 1], body2, 0.5);
 }
 
-
+var WIDTH: number;
+var HEIGHT: number;
+var DENSITY: number;
+var anchors = [];
 function initWrold(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
         return;
     }
     initialized = true;
 
-    var WIDTH = 300; //screen.mainScreen.widthDIPs;
-    var HEIGHT = 400; //screen.mainScreen.heightDIPs - 60;
+    DENSITY = utils.layout.getDisplayDensity();
+    WIDTH = 300; //screen.mainScreen.widthDIPs;
+    HEIGHT = 400; //screen.mainScreen.heightDIPs - 60;
     console.log("w: " + WIDTH + " h: " + HEIGHT);
-    
+
     container.width = WIDTH;
     container.height = HEIGHT;
 
     var world = Physics();
+    var rigidConstraints = Physics.behavior('verlet-constraints', {
+        iterations: 1
+    });
 
     var ball = Physics.body('circle', {
         x: 250,
@@ -95,15 +104,32 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
         mass: 9
     });
     anchor.treatment = 'static';
+    anchors.push(anchor);
+    createLink(anchor, ball, world, rigidConstraints, 5);
 
-    var rigidConstraints = Physics.behavior('verlet-constraints', {
-        iterations: 1
+    var ball2 = Physics.body('circle', {
+        x: 120,
+        y: 220,
+        radius: 20,
+        mass: 2
     });
 
-    createLink(anchor, ball, world, rigidConstraints, 5);
+    var anchor2 = Physics.body('circle', {
+        x: 50,
+        y: 200,
+        vx: .2,
+        radius: 10,
+        mass: 9
+    });
+    anchor2.treatment = 'static';
+    anchors.push(anchor2);
+    createLink(anchor2, ball2, world, rigidConstraints, 5);
+
 
     world.add(anchor);
     world.add(ball);
+    world.add(anchor2);
+    world.add(ball2);
     world.add(rigidConstraints);
 
     var renderer = Physics.renderer('ns', {
@@ -137,3 +163,41 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     }, 20);
 }
 
+var initialPos;
+var selectedAnchor;
+export function onPan(args: gestures.PanGestureEventData) {
+    let touchX: number;
+    let touchY: number;
+    if (args.android) {
+        touchX = args.android.current.getX() / DENSITY;
+        touchY = args.android.current.getY() / DENSITY;
+    }
+    else if (args.ios) {
+        var pos = args.ios.locationInView((<View>args.object).ios);
+        touchX = pos.x;
+        touchY = pos.y;
+    }
+
+    if (touchX === undefined || touchY === undefined) {
+        return;
+    }
+
+    var touch = new Physics.vector(touchX, touchY);
+    console.log(`PAN state: ${ args.state } touch: ${ touch.toString() }`);
+
+    if (args.state === 1) { // gesture begin
+        for (var a of anchors) {
+            if (touch.dist(a.state.pos) < 20) {
+                selectedAnchor = a;
+                break;
+            }
+        }
+    }
+    else if (args.state === 3) { // gesture end
+        selectedAnchor = undefined;
+    }
+
+    if (selectedAnchor) {
+        selectedAnchor.state.pos.set(touchX, touchY);
+    }
+}
