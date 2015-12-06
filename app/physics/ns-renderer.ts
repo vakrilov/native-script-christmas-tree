@@ -30,7 +30,12 @@ Physics.renderer('ns', function(parent) {
         // extended
         createView: function(geometry, styles) {
             var img = new Image();
-            img.src = "~/image.png";
+            if(styles && styles.image){
+                img.src = styles.image;
+            }
+            else {
+                
+            }
             img.width = geometry.radius * 2;
             img.height = geometry.radius * 2;
 

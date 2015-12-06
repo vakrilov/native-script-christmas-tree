@@ -37,10 +37,10 @@ interface BallWithChain {
 }
 
 var ballsWithChains: Array<BallWithChain> = [
-    { ballX: 60, ballY: 100, anchorX: 50, anchorY: 50 },
-    { ballX: 40, ballY: 250, anchorX: 50, anchorY: 200 },
-    { ballX: 260, ballY: 100, anchorX: 250, anchorY: 50 },
-    { ballX: 240, ballY: 250, anchorX: 250, anchorY: 200 },
+    { ballX: 60, ballY: 100, anchorX: 50, anchorY: 50, image: "~/images/ns-logo.png"  },
+    { ballX: 40, ballY: 250, anchorX: 50, anchorY: 200, image: "~/images/kendo-ui-logo.png" },
+    { ballX: 260, ballY: 100, anchorX: 250, anchorY: 50, image: "~/images/telerik-logo.png" },
+    { ballX: 240, ballY: 250, anchorX: 250, anchorY: 200, image: "~/images/progress-logo.png" },
 ];
 
 function createLink(body1, body2, world, constraints, linkLength: number = 5) {
@@ -74,7 +74,10 @@ function createLink(body1, body2, world, constraints, linkLength: number = 5) {
             x: body1X + body1.radius * sin + (i + 1) * xInc,
             y: body1Y + body1.radius * cos + (i + 1) * yInc,
             radius: 2,
-            mass: 0.1
+            mass: 0.1,
+            styles: {
+                image: "~/images/link.png"
+            }
         });
         links.push(link);
         world.add(link);
@@ -106,7 +109,10 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
         y: bwc.anchorY,
         vx: .2,
         radius: 10,
-        mass: 9
+        mass: 9,
+        styles: {
+            image: "~/images/anchor.png"
+        }
     });
     anchor.treatment = 'static';
     bwc.anchorRef = anchor;
