@@ -23,11 +23,31 @@ export function pageLoaded(args: observable.EventData) {
     initWrold(container, metaText);
 }
 
-function createLink(body1, body2, world, constraints, linkLength: number = 10) {
-    let body1X = body1.state.pos.get(0);
-    let body1Y = body1.state.pos.get(1);
-    let body2X = body2.state.pos.get(0);
-    let body2Y = body2.state.pos.get(1);
+interface Point {
+    x: number,
+    y: number
+}
+interface BallWithChain {
+    ballX: number,
+    ballY: number,
+    image?: string,
+    anchorX: number,
+    anchorY: number,
+    anchorRef?: any;
+}
+
+var ballsWithChains: Array<BallWithChain> = [
+    { ballX: 60, ballY: 100, anchorX: 50, anchorY: 50 },
+    { ballX: 40, ballY: 250, anchorX: 50, anchorY: 200 },
+    { ballX: 260, ballY: 100, anchorX: 250, anchorY: 50 },
+    { ballX: 240, ballY: 250, anchorX: 250, anchorY: 200 },
+];
+
+function createLink(body1, body2, world, constraints, linkLength: number = 5) {
+    let body1X = body1.state.pos.x;
+    let body1Y = body1.state.pos.y;
+    let body2X = body2.state.pos.x;
+    let body2Y = body2.state.pos.y;
 
     let dx = body2X - body1X;
     let dy = body2Y - body1Y;
@@ -69,7 +89,34 @@ function createLink(body1, body2, world, constraints, linkLength: number = 10) {
 var WIDTH: number;
 var HEIGHT: number;
 var DENSITY: number;
-var anchors = [];
+
+function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
+    var ball = Physics.body('circle', {
+        x: bwc.ballX,
+        y: bwc.ballY,
+        radius: 15,
+        mass: 2,
+        styles: {
+            image: bwc.image
+        }
+    });
+
+    var anchor = Physics.body('circle', {
+        x: bwc.anchorX,
+        y: bwc.anchorY,
+        vx: .2,
+        radius: 10,
+        mass: 9
+    });
+    anchor.treatment = 'static';
+    bwc.anchorRef = anchor;
+    createLink(anchor, ball, world, constraints);
+
+    world.add(anchor);
+    world.add(ball);
+}
+
+
 function initWrold(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
         return;
@@ -88,50 +135,11 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     var rigidConstraints = Physics.behavior('verlet-constraints', {
         iterations: 1
     });
+    
+    ballsWithChains.forEach((bwc) => createBallWithChain(bwc, world, rigidConstraints));
 
-    var ball = Physics.body('circle', {
-        x: 250,
-        y: 60,
-        radius: 20,
-        mass: 2
-    });
-
-    var anchor = Physics.body('circle', {
-        x: 150,
-        y: 100,
-        vx: .2,
-        radius: 10,
-        mass: 9
-    });
-    anchor.treatment = 'static';
-    anchors.push(anchor);
-    createLink(anchor, ball, world, rigidConstraints, 5);
-
-    var ball2 = Physics.body('circle', {
-        x: 120,
-        y: 220,
-        radius: 20,
-        mass: 2
-    });
-
-    var anchor2 = Physics.body('circle', {
-        x: 50,
-        y: 200,
-        vx: .2,
-        radius: 10,
-        mass: 9
-    });
-    anchor2.treatment = 'static';
-    anchors.push(anchor2);
-    createLink(anchor2, ball2, world, rigidConstraints, 5);
-
-
-    world.add(anchor);
-    world.add(ball);
-    world.add(anchor2);
-    world.add(ball2);
     world.add(rigidConstraints);
-
+    
     var renderer = Physics.renderer('ns', {
         container: container,
         metaText: metaText,
@@ -152,7 +160,6 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     world.on('step', function() {
         world.render();
     });
-
 
     Physics.util.ticker.on(function(t) {
         world.step(t);
@@ -186,9 +193,10 @@ export function onPan(args: gestures.PanGestureEventData) {
     console.log(`PAN state: ${ args.state } touch: ${ touch.toString() }`);
 
     if (args.state === 1) { // gesture begin
-        for (var a of anchors) {
-            if (touch.dist(a.state.pos) < 20) {
-                selectedAnchor = a;
+        for (var bwc of ballsWithChains) {
+            
+            if (touch.dist(bwc.anchorRef.state.pos) < 20) {
+                selectedAnchor = bwc.anchorRef;
                 break;
             }
         }
