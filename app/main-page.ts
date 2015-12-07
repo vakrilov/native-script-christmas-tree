@@ -12,7 +12,46 @@ import utils = require("utils/utils");
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
 
+var WIDTH: number;
+var HEIGHT: number;
+var DENSITY: number;
+var LINK_STIFFNESS: number = 0.5;
+var DROP_SPOT_SIZE: number = 20;
+var selectedAnchor;
+var selectedDropSpot: DropSpot;
+
 var initialized = false;
+
+interface BallWithChain {
+    ballX: number,
+    ballY: number,
+    image?: string,
+    anchorX: number,
+    anchorY: number,
+    anchorRef?: any;
+}
+
+interface DropSpot {
+    x: number;
+    y: number;
+    view?: View;
+    pos?: any;
+}
+
+var dropSpots: Array<DropSpot> = [
+    { x: 130, y: 170 },
+    { x: 180, y: 180 },
+    { x: 100, y: 280 },
+    { x: 210, y: 290 }
+]
+
+var ballsWithChains: Array<BallWithChain> = [
+    { anchorX: 30, anchorY: 30,   ballX: 20, ballY: 80,  image: "~/images/ns-logo.png" },
+    { anchorX: 70, anchorY: 30,   ballX: 60, ballY: 80,  image: "~/images/kendo-ui-logo.png" },
+    { anchorX: 230, anchorY: 30,  ballX: 240, ballY: 80, image: "~/images/telerik-logo.png" },
+    { anchorX: 270, anchorY: 30,  ballX: 280, ballY: 80, image: "~/images/progress-logo.png" },
+];
+
 // Event handler for Page "loaded" event attached in main-page.xml
 export function pageLoaded(args: observable.EventData) {
     var page = <pages.Page>args.object;
@@ -23,27 +62,7 @@ export function pageLoaded(args: observable.EventData) {
     initWrold(container, metaText);
 }
 
-interface Point {
-    x: number,
-    y: number
-}
-interface BallWithChain {
-    ballX: number,
-    ballY: number,
-    image?: string,
-    anchorX: number,
-    anchorY: number,
-    anchorRef?: any;
-}
-
-var ballsWithChains: Array<BallWithChain> = [
-    { ballX: 60, ballY: 100, anchorX: 50, anchorY: 50, image: "~/images/ns-logo.png"  },
-    { ballX: 40, ballY: 250, anchorX: 50, anchorY: 200, image: "~/images/kendo-ui-logo.png" },
-    { ballX: 260, ballY: 100, anchorX: 250, anchorY: 50, image: "~/images/telerik-logo.png" },
-    { ballX: 240, ballY: 250, anchorX: 250, anchorY: 200, image: "~/images/progress-logo.png" },
-];
-
-function createLink(body1, body2, world, constraints, linkLength: number = 5) {
+function createLink(body1, body2, world, constraints, linkLength: number = 8) {
     let body1X = body1.state.pos.x;
     let body1Y = body1.state.pos.y;
     let body2X = body2.state.pos.x;
@@ -82,16 +101,13 @@ function createLink(body1, body2, world, constraints, linkLength: number = 5) {
         links.push(link);
         world.add(link);
         if (i > 0) {
-            constraints.distanceConstraint(links[i - 1], links[i], 0.5);
+            constraints.distanceConstraint(links[i - 1], links[i], LINK_STIFFNESS);
         }
     }
-    constraints.distanceConstraint(body1, links[0], 0.5);
-    constraints.distanceConstraint(links[count - 1], body2, 0.5);
+    constraints.distanceConstraint(body1, links[0], LINK_STIFFNESS);
+    constraints.distanceConstraint(links[count - 1], body2, LINK_STIFFNESS);
 }
 
-var WIDTH: number;
-var HEIGHT: number;
-var DENSITY: number;
 
 function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     var ball = Physics.body('circle', {
@@ -122,6 +138,21 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     world.add(ball);
 }
 
+function addDropSpots(container: LayoutBase) {
+    for (var dropSpot of dropSpots) {
+        var img = new Image();
+        img.width = DROP_SPOT_SIZE;
+        img.height = DROP_SPOT_SIZE;
+        img.translateX = dropSpot.x - DROP_SPOT_SIZE / 2;
+        img.translateY = dropSpot.y - DROP_SPOT_SIZE / 2;
+        img.src = "~/images/anchor.png";
+        img.stretch = "aspectFit";
+
+        dropSpot.view = img;
+        dropSpot.pos = new Physics.vector(dropSpot.x, dropSpot.y);
+        container.addChild(img);
+    }
+}
 
 function initWrold(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
@@ -137,15 +168,17 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     container.width = WIDTH;
     container.height = HEIGHT;
 
+    addDropSpots(container);
+
     var world = Physics();
     var rigidConstraints = Physics.behavior('verlet-constraints', {
         iterations: 1
     });
-    
+
     ballsWithChains.forEach((bwc) => createBallWithChain(bwc, world, rigidConstraints));
 
     world.add(rigidConstraints);
-    
+
     var renderer = Physics.renderer('ns', {
         container: container,
         metaText: metaText,
@@ -155,7 +188,7 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     });
 
     world.add([
-        Physics.behavior('edge-collision-detection', { aabb: Physics.aabb(0, 0, WIDTH, HEIGHT) }),
+       // Physics.behavior('edge-collision-detection', { aabb: Physics.aabb(0, 0, WIDTH, HEIGHT) }),
         Physics.behavior('body-collision-detection'),
         Physics.behavior('body-impulse-response'),
         Physics.behavior('sweep-prune'),
@@ -176,8 +209,6 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     }, 20);
 }
 
-var initialPos;
-var selectedAnchor;
 export function onPan(args: gestures.PanGestureEventData) {
     let touchX: number;
     let touchY: number;
@@ -200,18 +231,42 @@ export function onPan(args: gestures.PanGestureEventData) {
 
     if (args.state === 1) { // gesture begin
         for (var bwc of ballsWithChains) {
-            
             if (touch.dist(bwc.anchorRef.state.pos) < 20) {
                 selectedAnchor = bwc.anchorRef;
                 break;
             }
         }
+        if (selectedAnchor) {
+            selectedAnchor.view.scaleX = 1.2;
+            selectedAnchor.view.scaleY = 1.2;
+        }
     }
-    else if (args.state === 3) { // gesture end
+    else if (args.state === 3 && selectedAnchor) { // gesture end
+        selectedAnchor.view.scaleX = 1;
+        selectedAnchor.view.scaleY = 1;
         selectedAnchor = undefined;
     }
 
     if (selectedAnchor) {
+        for (var dropSpot of dropSpots) {
+            if (touch.dist(dropSpot.pos) < 10) {
+                selectedDropSpot = dropSpot;
+                dropSpot.view.scaleX = 2;
+                dropSpot.view.scaleY = 2;
+
+                touchX = dropSpot.x;
+                touchY = dropSpot.y;
+            }
+            else {
+                dropSpot.view.scaleX = 1;
+                dropSpot.view.scaleY = 1;
+            }
+        }
         selectedAnchor.state.pos.set(touchX, touchY);
     }
+}
+
+export function onShare(){
+    console.log("Share tapped !!!");
+    // Todo use screenshot && social share plugins to share
 }

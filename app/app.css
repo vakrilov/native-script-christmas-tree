@@ -7,15 +7,26 @@
 }
 
 #container{
-    background-color: lightblue;
+    /*background-color: lightblue;*/
 }
 
 #outer-container{
-    background-color: lightgreen;
+    /*background-color: lightgreen;*/
 }
 
+.tree {
+    horizontal-align: center;
+    vertical-align: center;
+}
 
 Image {
     horizontal-align: left;
     vertical-align: top;
+}
+
+.btn-share {
+    color: white;
+    background-color: #55acee;
+    margin: 12;
+    border-radius: 6;
 }

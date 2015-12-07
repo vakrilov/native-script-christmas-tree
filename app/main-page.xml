@@ -1,7 +1,10 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="pageLoaded">
-  <GridLayout id="outer-container" >
+  <GridLayout id="outer-container" rows="*, auto">
+    <Image width="300" height="400" src="~/images/tree.png" class="tree"/>
     <GridLayout id="container" pan="onPan">
       <Label id="meta"/>
     </GridLayout>
+    
+    <Button row="1" text="share" tap="onShare" class="btn-share"/>
   </GridLayout>
 </Page>
