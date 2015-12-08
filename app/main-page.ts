@@ -22,7 +22,7 @@ var DENSITY: number;
 var LINK_STIFFNESS: number = 0.5;
 var DROP_SPOT_SIZE: number = 20;
 
-var selectedAnchor;
+var selectedBall: BallWithChain;
 var selectedDropSpot: DropSpot;
 
 var initialized = false;
@@ -118,8 +118,8 @@ function createLink(body1, body2, world, constraints, linkLength: number = 8) {
 
 function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     var ball = Physics.body('circle', {
-        x: OFFSET_X + bwc.ballX,
-        y: OFFSET_Y + bwc.ballY,
+        x: bwc.ballX,
+        y: bwc.ballY,
         radius: 15,
         mass: 2,
         styles: {
@@ -128,8 +128,8 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     });
 
     var anchor = Physics.body('circle', {
-        x: OFFSET_X + bwc.anchorX,
-        y: OFFSET_Y + bwc.anchorY,
+        x: bwc.anchorX,
+        y: bwc.anchorY,
         vx: .2,
         radius: 10,
         mass: 9,
@@ -145,11 +145,10 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     world.add(ball);
 }
 
+
+
 function addDropSpots(container: LayoutBase) {
     for (var dropSpot of dropSpots) {
-        dropSpot.x += OFFSET_X;
-        dropSpot.y += OFFSET_Y;
-
         var img = new Image();
         img.width = DROP_SPOT_SIZE;
         img.height = DROP_SPOT_SIZE;
@@ -176,6 +175,20 @@ function initConstants(container: LayoutBase) {
     console.log("w: " + WIDTH + " h: " + HEIGHT);
 }
 
+function addOffsets() {
+    for (var dropSpot of dropSpots) {
+        dropSpot.x += OFFSET_X;
+        dropSpot.y += OFFSET_Y;
+    }
+
+    for (var bwc of ballsWithChains) {
+        bwc.anchorX += OFFSET_X;
+        bwc.anchorY += OFFSET_Y;
+        bwc.ballX += OFFSET_X;
+        bwc.ballY += OFFSET_Y;
+    }
+}
+
 function initWrold(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
         return;
@@ -183,6 +196,8 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     initialized = true;
 
     initConstants(container);
+    addOffsets();
+
     addDropSpots(container);
 
     var world = Physics();
@@ -248,26 +263,32 @@ export function onPan(args: gestures.PanGestureEventData) {
     if (args.state === 1) { // gesture begin
         for (var bwc of ballsWithChains) {
             if (touch.dist(bwc.anchorRef.state.pos) < 20) {
-                selectedAnchor = bwc.anchorRef;
+                selectedBall = bwc;
                 break;
             }
         }
-        if (selectedAnchor) {
-            selectedAnchor.view.scaleX = 2;
-            selectedAnchor.view.scaleY = 2;
+        if (selectedBall) {
+            selectedBall.anchorRef.view.scaleX = 2;
+            selectedBall.anchorRef.view.scaleY = 2;
         }
     }
-    else if (args.state === 3 && selectedAnchor) { // gesture end
-        selectedAnchor.view.scaleX = 1;
-        selectedAnchor.view.scaleY = 1;
-        selectedAnchor = undefined;
+    else if (args.state === 3 && selectedBall) { // gesture end
         if (selectedDropSpot) {
             selectedDropSpot.view.scaleX = 1;
             selectedDropSpot.view.scaleY = 1;
         }
+        else {
+            //reset
+            //selectedBall.anchorRef.state.pos.set(selectedBall.anchorX, selectedBall.anchorY);
+        }
+
+        selectedBall.anchorRef.view.scaleX = 1;
+        selectedBall.anchorRef.view.scaleY = 1;
+        selectedBall = undefined;
+        selectedDropSpot = undefined;
     }
 
-    if (selectedAnchor) {
+    if (selectedBall) {
         for (var dropSpot of dropSpots) {
             if (touch.dist(dropSpot.pos) < 10) {
                 selectedDropSpot = dropSpot;
@@ -280,13 +301,15 @@ export function onPan(args: gestures.PanGestureEventData) {
             else {
                 dropSpot.view.scaleX = 1;
                 dropSpot.view.scaleY = 1;
+                if (selectedDropSpot === dropSpot) {
+                    selectedDropSpot = undefined;
+                }
             }
         }
-        selectedAnchor.state.pos.set(touchX, touchY);
+
+        selectedBall.anchorRef.state.pos.set(touchX, touchY);
     }
 }
-
-
 
 export function onShare() {
     console.log("Share tapped !!!");
