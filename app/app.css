@@ -2,7 +2,7 @@
     font-family: monospace;
     font-size: 10;
     horizontal-align: right;
-    vertical-align: bottom;
+    vertical-align: top;
     margin: 5;
 }
 
@@ -12,6 +12,7 @@
 
 #outer-container{
     /*background-color: lightgreen;*/
+    background-color: #F7F6E5;
 }
 
 .tree {
@@ -27,6 +28,7 @@ Image {
 .btn-share {
     color: white;
     background-color: #55acee;
-    margin: 12;
+    margin: 10;
+    height: 40;
     border-radius: 6;
 }

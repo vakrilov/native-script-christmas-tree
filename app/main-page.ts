@@ -12,11 +12,16 @@ import utils = require("utils/utils");
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
 
+var SCENE_WIDTH: number = 300;
+var SCENE_HEIGHT: number = 400;
+var OFFSET_X: number;
+var OFFSET_Y: number;
 var WIDTH: number;
 var HEIGHT: number;
 var DENSITY: number;
 var LINK_STIFFNESS: number = 0.5;
 var DROP_SPOT_SIZE: number = 20;
+
 var selectedAnchor;
 var selectedDropSpot: DropSpot;
 
@@ -46,10 +51,10 @@ var dropSpots: Array<DropSpot> = [
 ]
 
 var ballsWithChains: Array<BallWithChain> = [
-    { anchorX: 30, anchorY: 30,   ballX: 20, ballY: 80,  image: "~/images/ns-logo.png" },
-    { anchorX: 70, anchorY: 30,   ballX: 60, ballY: 80,  image: "~/images/kendo-ui-logo.png" },
-    { anchorX: 230, anchorY: 30,  ballX: 240, ballY: 80, image: "~/images/telerik-logo.png" },
-    { anchorX: 270, anchorY: 30,  ballX: 280, ballY: 80, image: "~/images/progress-logo.png" },
+    { anchorX: 30, anchorY: 30, ballX: 20, ballY: 80, image: "~/images/ns-logo.png" },
+    { anchorX: 70, anchorY: 30, ballX: 60, ballY: 80, image: "~/images/kendo-ui-logo.png" },
+    { anchorX: 230, anchorY: 30, ballX: 240, ballY: 80, image: "~/images/telerik-logo.png" },
+    { anchorX: 270, anchorY: 30, ballX: 280, ballY: 80, image: "~/images/progress-logo.png" },
 ];
 
 // Event handler for Page "loaded" event attached in main-page.xml
@@ -59,7 +64,9 @@ export function pageLoaded(args: observable.EventData) {
     var container = <LayoutBase>page.getViewById("container");
     var metaText = <TextBase>page.getViewById("meta");
 
-    initWrold(container, metaText);
+    setTimeout(function() {
+        initWrold(container, metaText);
+    }, 100);
 }
 
 function createLink(body1, body2, world, constraints, linkLength: number = 8) {
@@ -111,8 +118,8 @@ function createLink(body1, body2, world, constraints, linkLength: number = 8) {
 
 function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     var ball = Physics.body('circle', {
-        x: bwc.ballX,
-        y: bwc.ballY,
+        x: OFFSET_X + bwc.ballX,
+        y: OFFSET_Y + bwc.ballY,
         radius: 15,
         mass: 2,
         styles: {
@@ -121,8 +128,8 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
     });
 
     var anchor = Physics.body('circle', {
-        x: bwc.anchorX,
-        y: bwc.anchorY,
+        x: OFFSET_X + bwc.anchorX,
+        y: OFFSET_Y + bwc.anchorY,
         vx: .2,
         radius: 10,
         mass: 9,
@@ -140,6 +147,9 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
 
 function addDropSpots(container: LayoutBase) {
     for (var dropSpot of dropSpots) {
+        dropSpot.x += OFFSET_X;
+        dropSpot.y += OFFSET_Y;
+
         var img = new Image();
         img.width = DROP_SPOT_SIZE;
         img.height = DROP_SPOT_SIZE;
@@ -154,20 +164,25 @@ function addDropSpots(container: LayoutBase) {
     }
 }
 
+function initConstants(container: LayoutBase) {
+    DENSITY = utils.layout.getDisplayDensity();
+    WIDTH = container.getMeasuredWidth() / DENSITY;
+    HEIGHT = container.getMeasuredHeight() / DENSITY;
+    OFFSET_X = (WIDTH - SCENE_WIDTH) / 2;
+    OFFSET_Y = (HEIGHT - SCENE_HEIGHT - 60) / 2; // 60 - hieght of the share button
+    container.width = WIDTH;
+    container.height = HEIGHT;
+
+    console.log("w: " + WIDTH + " h: " + HEIGHT);
+}
+
 function initWrold(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
         return;
     }
     initialized = true;
 
-    DENSITY = utils.layout.getDisplayDensity();
-    WIDTH = 300; //screen.mainScreen.widthDIPs;
-    HEIGHT = 400; //screen.mainScreen.heightDIPs - 60;
-    console.log("w: " + WIDTH + " h: " + HEIGHT);
-
-    container.width = WIDTH;
-    container.height = HEIGHT;
-
+    initConstants(container);
     addDropSpots(container);
 
     var world = Physics();
@@ -182,13 +197,13 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     var renderer = Physics.renderer('ns', {
         container: container,
         metaText: metaText,
-        width: WIDTH,
-        height: HEIGHT,
+        width: SCENE_WIDTH,
+        height: SCENE_HEIGHT,
         meta: true
     });
 
     world.add([
-       // Physics.behavior('edge-collision-detection', { aabb: Physics.aabb(0, 0, WIDTH, HEIGHT) }),
+        // Physics.behavior('edge-collision-detection', { aabb: Physics.aabb(0, 0, WIDTH, HEIGHT) }),
         Physics.behavior('body-collision-detection'),
         Physics.behavior('body-impulse-response'),
         Physics.behavior('sweep-prune'),
@@ -209,6 +224,7 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     }, 20);
 }
 
+
 export function onPan(args: gestures.PanGestureEventData) {
     let touchX: number;
     let touchY: number;
@@ -227,7 +243,7 @@ export function onPan(args: gestures.PanGestureEventData) {
     }
 
     var touch = new Physics.vector(touchX, touchY);
-    console.log(`PAN state: ${ args.state } touch: ${ touch.toString() }`);
+    // console.log(`PAN state: ${ args.state } touch: ${ touch.toString() }`);
 
     if (args.state === 1) { // gesture begin
         for (var bwc of ballsWithChains) {
@@ -237,22 +253,26 @@ export function onPan(args: gestures.PanGestureEventData) {
             }
         }
         if (selectedAnchor) {
-            selectedAnchor.view.scaleX = 1.2;
-            selectedAnchor.view.scaleY = 1.2;
+            selectedAnchor.view.scaleX = 2;
+            selectedAnchor.view.scaleY = 2;
         }
     }
     else if (args.state === 3 && selectedAnchor) { // gesture end
         selectedAnchor.view.scaleX = 1;
         selectedAnchor.view.scaleY = 1;
         selectedAnchor = undefined;
+        if (selectedDropSpot) {
+            selectedDropSpot.view.scaleX = 1;
+            selectedDropSpot.view.scaleY = 1;
+        }
     }
 
     if (selectedAnchor) {
         for (var dropSpot of dropSpots) {
             if (touch.dist(dropSpot.pos) < 10) {
                 selectedDropSpot = dropSpot;
-                dropSpot.view.scaleX = 2;
-                dropSpot.view.scaleY = 2;
+                selectedDropSpot.view.scaleX = 2.2;
+                selectedDropSpot.view.scaleY = 2.2;
 
                 touchX = dropSpot.x;
                 touchY = dropSpot.y;
@@ -266,7 +286,9 @@ export function onPan(args: gestures.PanGestureEventData) {
     }
 }
 
-export function onShare(){
+
+
+export function onShare() {
     console.log("Share tapped !!!");
     // Todo use screenshot && social share plugins to share
 }

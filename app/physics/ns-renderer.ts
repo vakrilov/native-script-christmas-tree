@@ -40,9 +40,8 @@ Physics.renderer('ns', function(parent) {
             img.height = geometry.radius * 2;
 
             container.addChild(img);
-            
-            console.log("geometry: " + JSON.stringify(geometry));
-            console.log("styles: " + JSON.stringify(styles));
+            // console.log("geometry: " + JSON.stringify(geometry));
+            // console.log("styles: " + JSON.stringify(styles));
             return img;
         },
         drawMeta: function(meta) {
