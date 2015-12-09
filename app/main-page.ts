@@ -122,6 +122,7 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
         y: bwc.ballY,
         radius: 15,
         mass: 2,
+        restitution: 0.3,
         styles: {
             image: bwc.image
         }
@@ -133,6 +134,7 @@ function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
         vx: .2,
         radius: 10,
         mass: 9,
+        restitution: 0.3,
         styles: {
             image: "~/images/anchor.png"
         }
