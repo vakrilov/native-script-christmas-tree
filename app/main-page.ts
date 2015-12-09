@@ -11,6 +11,7 @@ import utils = require("utils/utils");
 
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
+var decelerateBehavior = require("./physics/friction-behavior");
 
 var SCENE_WIDTH: number = 300;
 var SCENE_HEIGHT: number = 400;
@@ -223,6 +224,7 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
         Physics.behavior('body-impulse-response'),
         Physics.behavior('sweep-prune'),
         Physics.behavior('constant-acceleration'),
+        Physics.behavior('friction'),
         renderer
     ]);
 

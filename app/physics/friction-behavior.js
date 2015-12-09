@@ -1,0 +1,23 @@
+var Physics = require('./physicsjs-full');
+Physics.behavior('friction', function (parent) {
+    var defaults = {
+        factor: 0.98
+    };
+    return {
+        // extended
+        init: function (options) {
+            parent.init.call(this);
+            this.options.defaults(defaults);
+            this.options(options);
+            this.factor = this.options.factor;
+        },
+        // extended
+        behave: function (data) {
+            var bodies = this.getTargets();
+            for (var i = 0, l = bodies.length; i < l; ++i) {
+                bodies[i].state.vel.mult(this.factor);
+            }
+        }
+    };
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZnJpY3Rpb24tYmVoYXZpb3IuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJmcmljdGlvbi1iZWhhdmlvci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxJQUFJLE9BQU8sR0FBRyxPQUFPLENBQUMsa0JBQWtCLENBQUMsQ0FBQztBQUUxQyxPQUFPLENBQUMsUUFBUSxDQUFDLFVBQVUsRUFBRSxVQUFTLE1BQU07SUFDeEMsSUFBSSxRQUFRLEdBQUc7UUFDWCxNQUFNLEVBQUUsSUFBSTtLQUNmLENBQUM7SUFFRixNQUFNLENBQUM7UUFFSCxXQUFXO1FBQ1gsSUFBSSxFQUFFLFVBQVMsT0FBTztZQUNsQixNQUFNLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyxJQUFJLENBQUMsQ0FBQztZQUN2QixJQUFJLENBQUMsT0FBTyxDQUFDLFFBQVEsQ0FBQyxRQUFRLENBQUMsQ0FBQztZQUNoQyxJQUFJLENBQUMsT0FBTyxDQUFDLE9BQU8sQ0FBQyxDQUFDO1lBQ3RCLElBQUksQ0FBQyxNQUFNLEdBQUcsSUFBSSxDQUFDLE9BQU8sQ0FBQyxNQUFNLENBQUM7UUFDdEMsQ0FBQztRQUVELFdBQVc7UUFDWCxNQUFNLEVBQUUsVUFBUyxJQUFJO1lBQ2pCLElBQUksTUFBTSxHQUFHLElBQUksQ0FBQyxVQUFVLEVBQUUsQ0FBQztZQUMvQixHQUFHLENBQUMsQ0FBQyxHQUFHLENBQUMsQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsTUFBTSxDQUFDLE1BQU0sRUFBRSxDQUFDLEdBQUcsQ0FBQyxFQUFFLEVBQUUsQ0FBQyxFQUFFLENBQUM7Z0JBRTVDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLElBQUksQ0FBQyxJQUFJLENBQUMsTUFBTSxDQUFDLENBQUM7WUFFMUMsQ0FBQztRQUNMLENBQUM7S0FDSixDQUFDO0FBQ04sQ0FBQyxDQUFDLENBQUMifQ==
