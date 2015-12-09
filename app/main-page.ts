@@ -9,32 +9,21 @@ import {TextBase} from "ui/text-base";
 import {screen} from "platform";
 import utils = require("utils/utils");
 
+import {BallWithChain, initPhysicsWorld} from "./balls";
+
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
 
 var SCENE_WIDTH: number = 300;
 var SCENE_HEIGHT: number = 400;
-var OFFSET_X: number;
-var OFFSET_Y: number;
-var WIDTH: number;
-var HEIGHT: number;
 var DENSITY: number;
-var LINK_STIFFNESS: number = 0.5;
+
 var DROP_SPOT_SIZE: number = 20;
 
 var selectedBall: BallWithChain;
 var selectedDropSpot: DropSpot;
 
 var initialized = false;
-
-interface BallWithChain {
-    ballX: number,
-    ballY: number,
-    image?: string,
-    anchorX: number,
-    anchorY: number,
-    anchorRef?: any;
-}
 
 interface DropSpot {
     x: number;
@@ -59,6 +48,7 @@ var ballsWithChains: Array<BallWithChain> = [
 
 // Event handler for Page "loaded" event attached in main-page.xml
 export function pageLoaded(args: observable.EventData) {
+    DENSITY = utils.layout.getDisplayDensity();    
     var page = <pages.Page>args.object;
 
     var container = <LayoutBase>page.getViewById("container");
@@ -66,88 +56,8 @@ export function pageLoaded(args: observable.EventData) {
 
     setTimeout(function() {
         initWrold(container, metaText);
-    }, 100);
+    }, 200);
 }
-
-function createLink(body1, body2, world, constraints, linkLength: number = 8) {
-    let body1X = body1.state.pos.x;
-    let body1Y = body1.state.pos.y;
-    let body2X = body2.state.pos.x;
-    let body2Y = body2.state.pos.y;
-
-    let dx = body2X - body1X;
-    let dy = body2Y - body1Y;
-    let distance = Math.sqrt(dx * dx + dy * dy) - body1.radius - body2.radius;
-    if (distance < 0) {
-        throw Error("Bodies are too close");
-    }
-    let count = Math.floor(distance / linkLength) - 1;
-    if (count === 0) {
-        //direct link
-        constraints.distanceConstraint(body1, body2, 0.5);
-        return;
-    }
-
-    let angle = Math.atan2(dx, dy);
-    let sin = Math.sin(angle);
-    let cos = Math.cos(angle);
-
-    let xInc = (sin * distance) / (count + 1);
-    let yInc = (cos * distance) / (count + 1);
-    let links = [];
-    for (let i = 0; i < count; i++) {
-        let link = Physics.body('circle', {
-            x: body1X + body1.radius * sin + (i + 1) * xInc,
-            y: body1Y + body1.radius * cos + (i + 1) * yInc,
-            radius: 2,
-            mass: 0.1,
-            styles: {
-                image: "~/images/link.png"
-            }
-        });
-        links.push(link);
-        world.add(link);
-        if (i > 0) {
-            constraints.distanceConstraint(links[i - 1], links[i], LINK_STIFFNESS);
-        }
-    }
-    constraints.distanceConstraint(body1, links[0], LINK_STIFFNESS);
-    constraints.distanceConstraint(links[count - 1], body2, LINK_STIFFNESS);
-}
-
-
-function createBallWithChain(bwc: BallWithChain, world: any, constraints) {
-    var ball = Physics.body('circle', {
-        x: bwc.ballX,
-        y: bwc.ballY,
-        radius: 15,
-        mass: 2,
-        restitution: 0.3,
-        styles: {
-            image: bwc.image
-        }
-    });
-
-    var anchor = Physics.body('circle', {
-        x: bwc.anchorX,
-        y: bwc.anchorY,
-        vx: .2,
-        radius: 10,
-        mass: 9,
-        restitution: 0.3,
-        styles: {
-            image: "~/images/anchor.png"
-        }
-    });
-    anchor.treatment = 'static';
-    bwc.anchorRef = anchor;
-    createLink(anchor, ball, world, constraints);
-
-    world.add(anchor);
-    world.add(ball);
-}
-
-
 
 function addDropSpots(container: LayoutBase) {
     for (var dropSpot of dropSpots) {
@@ -165,29 +75,26 @@ function addDropSpots(container: LayoutBase) {
     }
 }
 
-function initConstants(container: LayoutBase) {
-    DENSITY = utils.layout.getDisplayDensity();
-    WIDTH = container.getMeasuredWidth() / DENSITY;
-    HEIGHT = container.getMeasuredHeight() / DENSITY;
-    OFFSET_X = (WIDTH - SCENE_WIDTH) / 2;
-    OFFSET_Y = (HEIGHT - SCENE_HEIGHT - 60) / 2; // 60 - hieght of the share button
-    container.width = WIDTH;
-    container.height = HEIGHT;
+function adjustToContainerSize(container: LayoutBase) {
+    var width = container.getMeasuredWidth() / DENSITY;
+    var height = container.getMeasuredHeight() / DENSITY;
+    
+    var offsetX = (width - SCENE_WIDTH) / 2;
+    var offsetY = (height - SCENE_HEIGHT - 60) / 2; // 60 - hieght of the share button
+    
+    container.width = width;
+    container.height = height;
 
-    console.log("w: " + WIDTH + " h: " + HEIGHT);
-}
-
-function addOffsets() {
     for (var dropSpot of dropSpots) {
-        dropSpot.x += OFFSET_X;
-        dropSpot.y += OFFSET_Y;
+        dropSpot.x += offsetX;
+        dropSpot.y += offsetY;
     }
 
     for (var bwc of ballsWithChains) {
-        bwc.anchorX += OFFSET_X;
-        bwc.anchorY += OFFSET_Y;
-        bwc.ballX += OFFSET_X;
-        bwc.ballY += OFFSET_Y;
+        bwc.anchorX += offsetX;
+        bwc.anchorY += offsetY;
+        bwc.ballX += offsetX;
+        bwc.ballY += offsetY;
     }
 }
 
@@ -197,49 +104,13 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
     }
     initialized = true;
 
-    initConstants(container);
-    addOffsets();
-
+    adjustToContainerSize(container);
+    
     addDropSpots(container);
-
-    var world = Physics();
-    var rigidConstraints = Physics.behavior('verlet-constraints', {
-        iterations: 1
-    });
-
-    ballsWithChains.forEach((bwc) => createBallWithChain(bwc, world, rigidConstraints));
-
-    world.add(rigidConstraints);
-
-    var renderer = Physics.renderer('ns', {
-        container: container,
-        metaText: metaText,
-        width: SCENE_WIDTH,
-        height: SCENE_HEIGHT,
-        meta: true
-    });
-
-    world.add([
-        // Physics.behavior('edge-collision-detection', { aabb: Physics.aabb(0, 0, WIDTH, HEIGHT) }),
-        Physics.behavior('body-collision-detection'),
-        Physics.behavior('body-impulse-response'),
-        Physics.behavior('sweep-prune'),
-        Physics.behavior('constant-acceleration'),
-        renderer
-    ]);
-
-    world.on('step', function() {
-        world.render();
-    });
-
-    Physics.util.ticker.on(function(t) {
-        world.step(t);
-    }).start();
-
-    setInterval(() => {
-        world.step(Date.now());
-    }, 20);
+    
+    initPhysicsWorld(container, metaText, ballsWithChains)
 }
+
 
 
 export function onPan(args: gestures.PanGestureEventData) {
