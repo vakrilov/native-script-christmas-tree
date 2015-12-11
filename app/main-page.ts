@@ -188,3 +188,21 @@ export function onShare() {
     console.log("Share tapped !!!");
     // Todo use screenshot && social share plugins to share
 }
+
+var animating:boolean = false;
+export function onStarTap(args) {
+    if(animating){
+        return;
+    }
+    animating = true;
+    var star = <View>args.object;
+   
+    star.animate({
+        rotate: 720,
+        duration: 1500,
+        curve: "easeInOut"
+    }).then(() => {
+        star.rotate = 0;
+        animating = false;
+    })   
+}

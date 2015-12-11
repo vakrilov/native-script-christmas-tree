@@ -1,9 +1,13 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="pageLoaded">
   <GridLayout id="outer-container" rows="*, auto">
     <Image width="300" height="400" src="~/images/tree.png" class="tree"/>
+    
     <GridLayout id="container" pan="onPan" rowSpan="2">
       <Label id="meta"/>
     </GridLayout>
+   
+   <Image width="66" height="66" margin="18 0 316 4" tap="onStarTap"
+      src="~/images/star.png" class="tree"/>
     
     <Button row="1" text="share" tap="onShare" class="btn-share"/>
   </GridLayout>
