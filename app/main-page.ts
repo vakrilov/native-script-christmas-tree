@@ -33,8 +33,8 @@ interface DropSpot {
 }
 
 var dropSpots: Array<DropSpot> = [
-    { x: 130, y: 170 },
-    { x: 180, y: 180 },
+    { x: 120, y: 180 },
+    { x: 190, y: 190 },
     { x: 100, y: 280 },
     { x: 210, y: 290 }
 ]
