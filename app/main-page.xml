@@ -7,8 +7,8 @@
     </GridLayout>
    
    <Image width="66" height="66" margin="18 0 316 4" tap="onStarTap"
-      src="~/images/star.png" class="tree"/>
+      src="~/images/star.png" class="tree" id="star"/>
     
-    <Button row="1" text="share" tap="onShare" class="btn-share"/>
+    <Button row="1" text="share" tap="onShare" id="btn-share"/>
   </GridLayout>
 </Page>

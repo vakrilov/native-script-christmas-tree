@@ -25,9 +25,9 @@ Image {
     vertical-align: top;
 }
 
-.btn-share {
+#btn-share {
     color: white;
-    background-color: #55acee;
+    background-color: #808080;
     margin: 10;
     height: 40;
     border-radius: 6;
