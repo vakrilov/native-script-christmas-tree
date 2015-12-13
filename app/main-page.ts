@@ -8,6 +8,9 @@ import utils = require("utils/utils");
 
 import {BallWithChain, initPhysicsWorld} from "./balls";
 
+var socialShare = require("nativescript-social-share");
+var screenShot = require("nativescript-screenshot");
+
 var Physics = require("./physics/physicsjs-full")
 var nsRenderer = require("./physics/ns-renderer");
 
@@ -210,9 +213,10 @@ function drag(touch: Vector) {
     selectedBall.anchorRef.state.pos.set(touch.x, touch.y);
 }
 
-export function onShare() {
-    console.log("Share tapped !!!");
-    // Todo use screenshot && social share plugins to share
+export function onShare(args) {
+    var outerContainer = args.object.page.getViewById("outer-container");
+    var imageSrc = screenShot.getImage(outerContainer);
+    socialShare.shareImage(imageSrc, "Marry Christmas form #NativeScript!");
 }
 
 var animating: boolean = false;
