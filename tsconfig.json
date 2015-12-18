@@ -1,20 +1,20 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "inlineSourceMap": true,
-    "experimentalDecorators": true
-  },
-  "files": [
-    "app/app.ts",
-    "app/balls.ts",
-    "app/main-page.ts",
-    "app/physics/ns-renderer.ts",
-    "app/references.d.ts",
-    "node_modules/tns-core-modules/tns-core-modules.d.ts"
-  ],
-  "filesGlob": [
-    "node_modules/tns-core-modules/tns-core-modules.d.ts",
-    "app/**/*.ts"
-  ]
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "inlineSourceMap": true,
+        "experimentalDecorators": true
+    },
+    "files": [
+        "app/app.ts",
+        "app/balls.ts",
+        "app/main-page.ts",
+        "app/physics/ns-renderer.ts",
+        "app/references.d.ts",
+        "node_modules/tns-core-modules/tns-core-modules.d.ts"
+    ],
+    "filesGlob": [
+        "node_modules/tns-core-modules/tns-core-modules.d.ts",
+        "app/**/*.ts"
+    ]
 }
