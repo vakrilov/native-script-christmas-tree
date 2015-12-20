@@ -92,7 +92,7 @@ function adjustToContainerSize(container: LayoutBase) {
 
     var offsetX = (width - SCENE_WIDTH) / 2;
     var offsetY = (height - SCENE_HEIGHT) / 2;
-    
+
     container.width = width;
     container.height = height;
 
@@ -166,8 +166,8 @@ function startDragging(ball: BallWithChain) {
             unfinish = true;
         }
     });
-    
-    if(unfinish){
+
+    if (unfinish) {
         animateButton(false);
     }
 }
@@ -221,9 +221,17 @@ export function onShare(args) {
 
 function animateStar() {
     star.animate({
-        rotate: 720,
-        duration: 1500,
-        curve: "easeInOut"
+        rotate: 360,
+        scale: { x: 1.5, y: 1.5 },
+        duration: 500,
+        curve: "easeIn"
+    }).then(() => {
+        return star.animate({
+            rotate: 720,
+            scale: { x: 1, y: 1 },
+            duration: 500,
+            curve: "easeOut"
+        })
     }).then(() => {
         star.rotate = 0;
     })
