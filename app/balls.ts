@@ -2,6 +2,7 @@ import {LayoutBase} from "ui/layouts/layout-base";
 import {TextBase} from "ui/text-base";
 var Physics = require("./physics/physicsjs-full")
 
+var DEBUG = false;
 var LINK_STIFFNESS: number = 0.5;
 
 export interface BallWithChain {
@@ -115,7 +116,7 @@ export function initPhysicsWorld(container: LayoutBase, metaText: TextBase, ball
         metaText: metaText,
         // width: SCENE_WIDTH,
         // height: SCENE_HEIGHT,
-        meta: true
+        meta: DEBUG
     });
 
     world.add([

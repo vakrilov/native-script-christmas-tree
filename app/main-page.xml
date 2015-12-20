@@ -1,15 +1,13 @@
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="pageLoaded">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="pageLoaded" actionBarHidden="true">
   <GridLayout id="outer-container" rows="*, auto">
-    <Image width="300" height="400" src="~/images/tree.png" class="tree"/>
-    
-    <Image width="66" height="66" margin="18 0 316 4" src="~/images/star.png" class="tree" id="star"/>
-    
-    <GridLayout id="container" pan="onPan" rowSpan="2">
+    <GridLayout id="container" pan="onPan">
+      <Image width="300" height="400" src="~/images/tree.png" class="tree"/>
+      <Image width="66" height="66" margin="18 0 316 4" src="~/images/star.png" class="tree" id="star"/>
+      <Label text="Marry Christmas" class="greet" marginTop="430" />
+      
       <Label id="meta"/>
     </GridLayout>
     
-    <Button row="1" text="share" tap="onShare" id="btn-share"/>
-    
-    <Label row="1" text="Marry Christmas" class="greet" />
+    <Button row="1" text="SHARE" tap="onShare" id="btn-share"/>
   </GridLayout>
 </Page>

@@ -91,7 +91,7 @@ function adjustToContainerSize(container: LayoutBase) {
     var height = container.getMeasuredHeight() / DENSITY;
 
     var offsetX = (width - SCENE_WIDTH) / 2;
-    var offsetY = (height - SCENE_HEIGHT - 60) / 2; // 60 - hieght of the share button
+    var offsetY = (height - SCENE_HEIGHT) / 2;
     
     container.width = width;
     container.height = height;
@@ -214,8 +214,8 @@ function drag(touch: Vector) {
 }
 
 export function onShare(args) {
-    var outerContainer = args.object.page.getViewById("outer-container");
-    var imageSrc = screenShot.getImage(outerContainer);
+    var container = args.object.page.getViewById("container");
+    var imageSrc = screenShot.getImage(container);
     socialShare.shareImage(imageSrc, "Marry Christmas form #NativeScript!");
 }
 
