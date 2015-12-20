@@ -32,3 +32,10 @@ Image {
     height: 40;
     border-radius: 6;
 }
+.greet {
+    opacity: 0;
+    vertical-align: top;
+    horzontal-align: center;
+    font-size: 30;
+    color: #FF3F3B;
+}

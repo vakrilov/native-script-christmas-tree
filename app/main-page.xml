@@ -2,13 +2,14 @@
   <GridLayout id="outer-container" rows="*, auto">
     <Image width="300" height="400" src="~/images/tree.png" class="tree"/>
     
+    <Image width="66" height="66" margin="18 0 316 4" src="~/images/star.png" class="tree" id="star"/>
+    
     <GridLayout id="container" pan="onPan" rowSpan="2">
       <Label id="meta"/>
     </GridLayout>
-   
-   <Image width="66" height="66" margin="18 0 316 4" tap="onStarTap"
-      src="~/images/star.png" class="tree" id="star"/>
     
     <Button row="1" text="share" tap="onShare" id="btn-share"/>
+    
+    <Label row="1" text="Marry Christmas" class="greet" />
   </GridLayout>
 </Page>

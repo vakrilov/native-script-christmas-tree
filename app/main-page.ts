@@ -219,24 +219,13 @@ export function onShare(args) {
     socialShare.shareImage(imageSrc, "Marry Christmas form #NativeScript!");
 }
 
-var animating: boolean = false;
-export function onStarTap(args) {
-    animateStar();
-}
-
 function animateStar() {
-    if (animating) {
-        return;
-    }
-    animating = true;
-
     star.animate({
         rotate: 720,
         duration: 1500,
         curve: "easeInOut"
     }).then(() => {
         star.rotate = 0;
-        animating = false;
     })
 }
 
