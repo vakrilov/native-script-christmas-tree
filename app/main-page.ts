@@ -1,36 +1,39 @@
 import observable = require("data/observable");
 import pages = require("ui/page");
 import gestures = require("ui/gestures");
-import {Image, View, Label, LayoutBase, TextBase, Button} from "ui";
-import {Color} from "color";
-import {screen} from "platform";
+import { Image } from "ui/image";
+import { View } from "ui/core/view";
+import { Button } from "ui/button";
+import { LayoutBase } from "ui/layouts/layout-base";
+import { TextBase } from "ui/text-base";
+import { Color } from "color";
 import utils = require("utils/utils");
 
-import {BallWithChain, initPhysicsWorld} from "./balls";
+import { BallWithChain, initPhysicsWorld } from "./balls";
 
-var socialShare = require("nativescript-social-share");
-var screenShot = require("nativescript-screenshot");
+const socialShare = require("nativescript-social-share");
+const screenShot = require("nativescript-screenshot");
 
-var Physics = require("./physics/physicsjs-full")
-var nsRenderer = require("./physics/ns-renderer");
+const Physics = require("./physics/physicsjs-full");
+import "./physics/ns-renderer";
 
-var SCENE_WIDTH: number = 300;
-var SCENE_HEIGHT: number = 400;
-var DENSITY: number;
+const SCENE_WIDTH: number = 300;
+const SCENE_HEIGHT: number = 400;
+let DENSITY: number;
 
-var DROP_SPOT_SIZE: number = 20;
+const DROP_SPOT_SIZE: number = 20;
 
-var selectedBall: BallWithChain;
-var selectedDropSpot: DropSpot;
+let selectedBall: BallWithChain;
+let selectedDropSpot: DropSpot;
 
-var initialized = false;
-var shareBtn: Button;
-var star: Image;
+let initialized = false;
+let shareBtn: Button;
+let star: Image;
 
 interface Vector {
-    x: number,
-    y: number,
-    dist(other: Vector): number
+    x: number;
+    y: number;
+    dist(other: Vector): number;
 }
 
 interface DropSpot {
@@ -41,14 +44,14 @@ interface DropSpot {
     ball?: BallWithChain;
 }
 
-var dropSpots: Array<DropSpot> = [
+const dropSpots: Array<DropSpot> = [
     { x: 120, y: 180 },
     { x: 190, y: 190 },
     { x: 100, y: 280 },
     { x: 210, y: 290 }
 ]
 
-var ballsWithChains: Array<BallWithChain> = [
+const ballsWithChains: Array<BallWithChain> = [
     { anchorX: 30, anchorY: 30, ballX: 20, ballY: 80, image: "~/images/ns-logo.png" },
     { anchorX: 70, anchorY: 30, ballX: 60, ballY: 80, image: "~/images/kendo-ui-logo.png" },
     { anchorX: 230, anchorY: 30, ballX: 240, ballY: 80, image: "~/images/telerik-logo.png" },
@@ -58,21 +61,21 @@ var ballsWithChains: Array<BallWithChain> = [
 // Event handler for Page "loaded" event attached in main-page.xml
 export function pageLoaded(args: observable.EventData) {
     DENSITY = utils.layout.getDisplayDensity();
-    var page = <pages.Page>args.object;
+    const page = <pages.Page>args.object;
 
-    var container = <LayoutBase>page.getViewById("container");
-    var metaText = <TextBase>page.getViewById("meta");
+    const container = <LayoutBase>page.getViewById("container");
+    const metaText = <TextBase>page.getViewById("meta");
     star = <Image>page.getViewById("star");
     shareBtn = <Button>page.getViewById("btn-share");
 
-    setTimeout(function() {
-        initWrold(container, metaText);
+    setTimeout(function () {
+        initWorld(container, metaText);
     }, 200);
 }
 
 function addDropSpots(container: LayoutBase) {
-    for (var dropSpot of dropSpots) {
-        var img = new Image();
+    for (const dropSpot of dropSpots) {
+        const img = new Image();
         img.width = DROP_SPOT_SIZE;
         img.height = DROP_SPOT_SIZE;
         img.translateX = dropSpot.x - DROP_SPOT_SIZE / 2;
@@ -87,21 +90,21 @@ function addDropSpots(container: LayoutBase) {
 }
 
 function adjustToContainerSize(container: LayoutBase) {
-    var width = container.getMeasuredWidth() / DENSITY;
-    var height = container.getMeasuredHeight() / DENSITY;
+    const width = container.getMeasuredWidth() / DENSITY;
+    const height = container.getMeasuredHeight() / DENSITY;
 
-    var offsetX = (width - SCENE_WIDTH) / 2;
-    var offsetY = (height - SCENE_HEIGHT) / 2;
+    const offsetX = (width - SCENE_WIDTH) / 2;
+    const offsetY = (height - SCENE_HEIGHT) / 2;
 
     container.width = width;
     container.height = height;
 
-    for (var dropSpot of dropSpots) {
+    for (const dropSpot of dropSpots) {
         dropSpot.x += offsetX;
         dropSpot.y += offsetY;
     }
 
-    for (var bwc of ballsWithChains) {
+    for (const bwc of ballsWithChains) {
         bwc.anchorX += offsetX;
         bwc.anchorY += offsetY;
         bwc.ballX += offsetX;
@@ -109,7 +112,7 @@ function adjustToContainerSize(container: LayoutBase) {
     }
 }
 
-function initWrold(container: LayoutBase, metaText: TextBase) {
+function initWorld(container: LayoutBase, metaText: TextBase) {
     if (initialized) {
         return;
     }
@@ -119,28 +122,28 @@ function initWrold(container: LayoutBase, metaText: TextBase) {
 
     addDropSpots(container);
 
-    initPhysicsWorld(container, metaText, ballsWithChains)
+    initPhysicsWorld(container, metaText, ballsWithChains);
 }
 
 function getTouchPosition(args: gestures.PanGestureEventData): Vector {
-    var result: Vector;
+    let result: Vector;
     if (args.android) {
         result = new Physics.vector(args.android.current.getX() / DENSITY, args.android.current.getY() / DENSITY);
     }
     else if (args.ios) {
-        var pos = args.ios.locationInView((<View>args.object).ios);
+        const pos = args.ios.locationInView((<View>args.object).ios);
         result = new Physics.vector(pos.x, pos.y);
     }
     return result;
 }
 
 export function onPan(args: gestures.PanGestureEventData) {
-    var touch: Vector = getTouchPosition(args);
+    const touch: Vector = getTouchPosition(args);
     if (!touch) {
         return;
     }
     if (args.state === 1) {
-        for (var bwc of ballsWithChains) {
+        for (const bwc of ballsWithChains) {
             if (touch.dist(bwc.anchorRef.state.pos) < 20) {
                 startDragging(bwc);
                 break;
@@ -159,15 +162,15 @@ function startDragging(ball: BallWithChain) {
     selectedBall = ball;
     selectedBall.anchorRef.view.scaleX = 2;
     selectedBall.anchorRef.view.scaleY = 2;
-    var unfinish = false;
-    dropSpots.forEach(function(spot) {
+    let unfinished = false;
+    dropSpots.forEach(function (spot) {
         if (spot.ball === selectedBall) {
             spot.ball = undefined;
-            unfinish = true;
+            unfinished = true;
         }
     });
 
-    if (unfinish) {
+    if (unfinished) {
         animateButton(false);
     }
 }
@@ -190,7 +193,7 @@ function endDragging() {
 }
 
 function drag(touch: Vector) {
-    for (var dropSpot of dropSpots) {
+    for (const dropSpot of dropSpots) {
         if (dropSpot.ball) {
             //slot taken - move on;
             continue;
@@ -214,8 +217,8 @@ function drag(touch: Vector) {
 }
 
 export function onShare(args) {
-    var container = args.object.page.getViewById("container");
-    var imageSrc = screenShot.getImage(container);
+    const container = args.object.page.getViewById("container");
+    const imageSrc = screenShot.getImage(container);
     socialShare.shareImage(imageSrc, "Marry Christmas form #NativeScript!");
 }
 
@@ -231,13 +234,13 @@ function animateStar() {
             scale: { x: 1, y: 1 },
             duration: 500,
             curve: "easeOut"
-        })
+        });
     }).then(() => {
         star.rotate = 0;
-    })
+    });
 }
 
 function animateButton(completed: boolean) {
-    var color = new Color(completed ? "#55acee" : "#808080");
+    const color = new Color(completed ? "#55acee" : "#808080");
     shareBtn.animate({ backgroundColor: color });
 }

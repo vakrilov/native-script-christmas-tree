@@ -1,3 +1,2 @@
-import application = require("application");
-application.mainModule = "main-page";
-application.start();
+import * as app from "application";
+app.start({ moduleName: 'main-page' });

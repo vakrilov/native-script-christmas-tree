@@ -1,5 +1,6 @@
 /platforms/
 /node_modules/
+/lib
 
 /app/*.js
 /app/physics/ns-renderer.js
